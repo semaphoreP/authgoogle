@@ -36,7 +36,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             $USERINFO['is_google'] = $_SESSION[DOKU_COOKIE]['authgoogle']['info']['is_google'];
             $_SERVER['REMOTE_USER'] = $_SESSION[DOKU_COOKIE]['authgoogle']['user'];
             return true;
-	}
+		}
         
         //get form login info
         if(!empty($user)){
@@ -63,9 +63,9 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
         }
         
         //if token saved in cookies - get it
-        if ($_COOKIE[AUTHGOOGLE_COOKIE]) {
-            $_SESSION[DOKU_COOKIE]['authgoogle']['token'] = $_COOKIE[AUTHGOOGLE_COOKIE];
-        }
+        //if ($_COOKIE[AUTHGOOGLE_COOKIE]) {
+        //   $_SESSION[DOKU_COOKIE]['authgoogle']['token'] = $_COOKIE[AUTHGOOGLE_COOKIE];
+        //}
         
         //google auth
         require_once GOOGLE_API_DIR.'/Google_Client.php';
@@ -126,7 +126,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             }
             
             //create and update user in base
-            $login = 'google'.$user['id'];
+            $login = strtolower(str_replace(' ', '_', $user['name']));
             $udata = $this->getUserData($login);
             if (!$udata) {
                 //default groups
@@ -146,7 +146,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             $USERINFO['mail'] = $email;
             $USERINFO['grps'] = $udata['grps'];
             $USERINFO['is_google'] = true;
-            $_SERVER['REMOTE_USER'] = $user['name'];
+            $_SERVER['REMOTE_USER'] = $login;
             
             //save user info in session
             $_SESSION[DOKU_COOKIE]['authgoogle']['user'] = $_SERVER['REMOTE_USER'];
