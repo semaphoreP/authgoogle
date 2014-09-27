@@ -27,7 +27,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
     
     function trustExternal($user, $pass, $sticky = false) {
 	global $USERINFO, $ID;
-        
+		
         //get user info in session
         if (!empty($_SESSION[DOKU_COOKIE]['authgoogle']['info'])) {
             $USERINFO['name'] = $_SESSION[DOKU_COOKIE]['authgoogle']['info']['name'];
@@ -63,9 +63,9 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
         }
         
         //if token saved in cookies - get it
-        //if ($_COOKIE[AUTHGOOGLE_COOKIE]) {
-        //   $_SESSION[DOKU_COOKIE]['authgoogle']['token'] = $_COOKIE[AUTHGOOGLE_COOKIE];
-        //}
+        if ($_COOKIE[AUTHGOOGLE_COOKIE]) {
+           $_SESSION[DOKU_COOKIE]['authgoogle']['token'] = $_COOKIE[AUTHGOOGLE_COOKIE];
+        }
         
         //google auth
         require_once GOOGLE_API_DIR.'/Google_Client.php';
@@ -76,6 +76,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
         $client->setClientId($this->getConf('client_id'));
         $client->setClientSecret($this->getConf('client_secret'));
         $client->setRedirectUri(wl('start',array('do'=>'login'),true, '&'));
+		$client->setApprovalPrompt('auto');
 
         $oauth2 = new Google_Oauth2Service($client);       
         //get code from google redirect link       
@@ -155,9 +156,19 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             // update token
             $_SESSION['token'] = $client->getAccessToken();
             
+			//check breadcrumb trail for redirect url
+			$crumbs = breadcrumbs();
+			$last = count($crumbs);
+			$j = 0;
+			foreach($crumbs as $crumb_id => $crumb_name) {
+				$j++;
+				if ($j == $last) $oldurl = wl($crumb_id, '', true);
+			}
+		
             //if login page - redirect to main page
             if (isset($_GET['do']) && $_GET['do']=='login')
-                header("Location: ".wl('start', '', true));
+				//header("Location: ".wl('start', '', true));
+				header("Location: ".$oldurl);
             
             return true;
         } else {
