@@ -121,17 +121,10 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             
             //check email in list allows
             if (!$this->_check_email_domain($email)) {
-			    if (!$this->_check_email_domain_secondary($email)){
-					msg('Auth Google Error: access denied for '.$email);
-					$this->logOff();                
-					return false;
-				} else {
-					$_secondary_group = true;
-				}
-            } else {
-			    $_secondary_group = false;
-			}
-			
+                msg('Auth Google Error: access denied for '.$email);
+                $this->logOff();                
+                return false;
+            }
             
             //create and update user in base
             $login = strtolower(str_replace(' ', '_', $user['name']));
@@ -139,11 +132,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             if (!$udata) {
                 //default groups
                 $grps = null;
-				if (!$_secondary_group) {
-					if ($this->getConf('default_groups')) $grps = explode(' ', $this->getConf('default_groups'));
-				} else {
-					if ($this->getConf('allowed_domains_alt_group')) $grps = explode(' ', $this->getConf('allowed_domains_alt_group'));
-				}
+                if ($this->getConf('default_groups')) $grps = explode(' ', $this->getConf('default_groups'));
                 //create user
                 $this->createUser($login, md5(rand().$login), $user['name'], $email, $grps);
                 $udata = $this->getUserData($login);
@@ -156,7 +145,7 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
             $USERINFO['pass'] = "";
             $USERINFO['name'] = $user['name'];
             $USERINFO['mail'] = $email;
-			$USERINFO['grps'] = $udata['grps'];
+            $USERINFO['grps'] = $udata['grps'];
             $USERINFO['is_google'] = true;
             $_SERVER['REMOTE_USER'] = $login;
             
@@ -193,27 +182,6 @@ class auth_plugin_authgoogle extends auth_plugin_authplain  {
         //check email in allow domains
         if ($this->getConf('allowed_domains')) {
             $domains = preg_split("/[ ]+/is", $this->getConf('allowed_domains'));
-            foreach ($domains as $domain) {
-                $domain = trim($domain);
-                //all domains
-                if ($domain == '*') return true;
-                //email
-                if ($email == $domain) return true;
-                //domain
-                if (preg_match("/^\\*@([^@ ]+)/is", $domain, $m)) {                    
-                    if (preg_match("/@([^@ ]+)$/is", $email, $n)) {
-                        if ($m[1] == $n[1]) return true;
-                    }
-                }
-            }
-        }          
-        return false;        
-    }
-	
-	function _check_email_domain_secondary($email) {
-        //check email in allow domains
-        if ($this->getConf('allowed_domains_alt')) {
-            $domains = preg_split("/[ ]+/is", $this->getConf('allowed_domains_alt'));
             foreach ($domains as $domain) {
                 $domain = trim($domain);
                 //all domains
